@@ -13,8 +13,11 @@ import android.widget.Toast;
 
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.concurrent.TimeUnit;
 
@@ -60,7 +63,6 @@ public class VerificationActivity extends AppCompatActivity {
                 TimeUnit.SECONDS,   // Unit of timeout
                 this,               // Activity (for callback binding)
                 mCallbacks);        // OnVerificationStateChangedCallbacks
-
     }
 
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
@@ -97,6 +99,7 @@ public class VerificationActivity extends AppCompatActivity {
         firebaseAuth.signInWithCredential(credential).
                 addOnCompleteListener((task) -> {
                     if (task.isSuccessful()) {
+                        saveUserDataInDatabase();
                         Intent intent=new Intent(VerificationActivity.this, MainActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         startActivity(intent);
@@ -106,5 +109,11 @@ public class VerificationActivity extends AppCompatActivity {
                         Toast.makeText(VerificationActivity.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void saveUserDataInDatabase() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        DatabaseReference userDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(currentUser.getUid());
+        userDatabase.setValue(new Contact("sakib",phoneNumber));
     }
 }

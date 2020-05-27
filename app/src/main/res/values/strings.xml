@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">WhatsApp</string>
+    <string name="app_name">SakibApp</string>
     <string name="Login_title">Enter your phone number</string>
     <string name="smsVerificationMsg">WhatsApp will send an SMS message to verify your phone number.</string>
 </resources>

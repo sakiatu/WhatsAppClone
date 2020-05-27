@@ -57,7 +57,6 @@ public class LoginActivity extends AppCompatActivity {
         Intent intent = new Intent(this, VerificationActivity.class);
         intent.putExtra("phoneNumber", phoneNumber);
         startActivity(intent);
-
     }
 
     private void setCountryCode() {
