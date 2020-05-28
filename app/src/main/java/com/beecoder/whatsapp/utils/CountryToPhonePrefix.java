@@ -1,4 +1,4 @@
-package com.beecoder.whatsapp;
+package com.beecoder.whatsapp.utils;
 
 import java.util.HashMap;
 import java.util.Map;

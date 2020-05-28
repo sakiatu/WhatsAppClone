@@ -5,4 +5,5 @@
     <color name="colorAccent">#00A153</color>
     <color name="button_next">#00E676</color>
     <color name="background">#F3F3F3</color>
+    <color name="line">#C2C2C2</color>
 </resources>

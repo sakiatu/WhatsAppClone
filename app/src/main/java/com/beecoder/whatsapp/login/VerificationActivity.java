@@ -1,4 +1,4 @@
-package com.beecoder.whatsapp;
+package com.beecoder.whatsapp.login;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,6 +11,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.beecoder.whatsapp.chat.ChatActivity;
+import com.beecoder.whatsapp.R;
+import com.beecoder.whatsapp.user.Contact;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -100,7 +103,7 @@ public class VerificationActivity extends AppCompatActivity {
                 addOnCompleteListener((task) -> {
                     if (task.isSuccessful()) {
                         saveUserDataInDatabase();
-                        Intent intent=new Intent(VerificationActivity.this, MainActivity.class);
+                        Intent intent=new Intent(VerificationActivity.this, ChatActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         startActivity(intent);
                         finish();

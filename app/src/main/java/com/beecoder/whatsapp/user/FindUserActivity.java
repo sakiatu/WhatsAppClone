@@ -1,4 +1,4 @@
-package com.beecoder.whatsapp;
+package com.beecoder.whatsapp.user;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -12,6 +12,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import com.beecoder.whatsapp.R;
+import com.beecoder.whatsapp.user.Contact;
+import com.beecoder.whatsapp.user.UserAdapter;
+import com.beecoder.whatsapp.utils.CountryToPhonePrefix;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -21,10 +26,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-public class SelectUserActivity extends AppCompatActivity {
-    private RecyclerView recyclerView;
+public class FindUserActivity extends AppCompatActivity {
     private UserAdapter adapter;
-    private RecyclerView.LayoutManager layoutManager;
     private ArrayList<Contact> contacts = new ArrayList<>();
     private ProgressBar progressBar;
 
@@ -34,14 +37,7 @@ public class SelectUserActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select_user);
 
-        progressBar = findViewById(R.id.progressBar);
-        recyclerView = findViewById(R.id.recycler_selectContact);
-        layoutManager = new LinearLayoutManager(this);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(layoutManager);
-        adapter = new UserAdapter(contacts);
-        recyclerView.setAdapter(adapter);
-
+        loadUserList();
         Cursor cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
         while (true) {
             if (cursor.moveToNext()) {
@@ -67,6 +63,27 @@ public class SelectUserActivity extends AppCompatActivity {
         }
     }
 
+    private void loadUserList() {
+        RecyclerView recyclerView;
+        RecyclerView.LayoutManager layoutManager;
+        progressBar = findViewById(R.id.progressBar);
+        recyclerView = findViewById(R.id.recycler_selectContact);
+        layoutManager = new LinearLayoutManager(this);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(layoutManager);
+        adapter = new UserAdapter(contacts);
+        recyclerView.setAdapter(adapter);
+        adapter.setOnItemClickListener(this::chatWithSelected);
+    }
+
+    private void chatWithSelected(int position) {
+
+        String key = FirebaseDatabase.getInstance().getReference().child("chat").push().getKey();
+
+        FirebaseDatabase.getInstance().getReference().child("users").child(FirebaseAuth.getInstance().getUid()).child("chat").child(key).setValue(true);
+        FirebaseDatabase.getInstance().getReference().child("users").child(contacts.get(position).getUid()).child("chat").child(key).setValue(true);
+
+    }
 
     private void setContactToList(Contact contact) {
         DatabaseReference users = FirebaseDatabase.getInstance().getReference().child("users");
@@ -76,6 +93,9 @@ public class SelectUserActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     progressBar.setVisibility(View.GONE);
+                    for (DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
+                        contact.setUid(childDataSnapshot.getKey());
+                    }
                     contacts.add(contact);
                     adapter.notifyItemInserted(contacts.size() - 1);
                     Log.i("contact name", "onDataChange: " + contact.getName());
