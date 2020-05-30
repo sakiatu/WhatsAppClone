@@ -117,6 +117,6 @@ public class VerificationActivity extends AppCompatActivity {
     private void saveUserDataInDatabase() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         DatabaseReference userDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(currentUser.getUid());
-        userDatabase.setValue(new Contact("sakib",phoneNumber));
+        userDatabase.setValue(new Contact("",phoneNumber));
     }
 }

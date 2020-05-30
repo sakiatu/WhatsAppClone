@@ -1,13 +1,21 @@
 package com.beecoder.whatsapp.chatMessage;
 
+import java.util.ArrayList;
+
 public class Message {
-    private String messageId, sender, message;
+    private String messageId, creator, text, imageUrl;
 
-
-    public Message(String messageId, String sender, String message) {
+    public Message(String messageId, String creator, String text) {
         this.messageId = messageId;
-        this.sender = sender;
-        this.message = message;
+        this.creator = creator;
+        this.text = text;
+    }
+
+    public Message(String messageId, String creator, String text, String imageUrl) {
+        this.messageId = messageId;
+        this.creator = creator;
+        this.text = text;
+        this.imageUrl = imageUrl;
     }
 
     public String getMessageId() {
@@ -18,19 +26,27 @@ public class Message {
         this.messageId = messageId;
     }
 
-    public String getSender() {
-        return sender;
+    public String getCreator() {
+        return creator;
     }
 
-    public void setSender(String sender) {
-        this.sender = sender;
+    public void setCreator(String creator) {
+        this.creator = creator;
     }
 
-    public String getMessage() {
-        return message;
+    public String getText() {
+        return text;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

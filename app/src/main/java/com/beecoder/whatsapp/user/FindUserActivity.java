@@ -1,9 +1,11 @@
 package com.beecoder.whatsapp.user;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -13,6 +15,7 @@ import android.view.View;
 import android.widget.ProgressBar;
 
 import com.beecoder.whatsapp.R;
+import com.beecoder.whatsapp.chatMessage.MessageActivity;
 import com.beecoder.whatsapp.user.Contact;
 import com.beecoder.whatsapp.user.UserAdapter;
 import com.beecoder.whatsapp.utils.CountryToPhonePrefix;
@@ -25,11 +28,15 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class FindUserActivity extends AppCompatActivity {
     private UserAdapter adapter;
     private ArrayList<Contact> contacts = new ArrayList<>();
     private ProgressBar progressBar;
+    private String uID;
+    private ArrayList<String> chatKeys = new ArrayList<>();
+    private Boolean hasChat = Boolean.TRUE;
 
 
     @Override
@@ -37,7 +44,9 @@ public class FindUserActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select_user);
 
+        uID = FirebaseAuth.getInstance().getUid();
         loadUserList();
+        adapter.setOnItemClickListener(this::chatWithSelected);
         Cursor cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
         while (true) {
             if (cursor.moveToNext()) {
@@ -73,16 +82,53 @@ public class FindUserActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         adapter = new UserAdapter(contacts);
         recyclerView.setAdapter(adapter);
-        adapter.setOnItemClickListener(this::chatWithSelected);
     }
 
     private void chatWithSelected(int position) {
+        Query userChatQuery = FirebaseDatabase.getInstance().getReference().child("users").child(uID).child("chat");
+        userChatQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot chatKey : dataSnapshot.getChildren()) {
+                        chatKeys.add(chatKey.getKey());
+                    }
+                }
+            }
 
-        String key = FirebaseDatabase.getInstance().getReference().child("chat").push().getKey();
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+            }
+        });
 
-        FirebaseDatabase.getInstance().getReference().child("users").child(FirebaseAuth.getInstance().getUid()).child("chat").child(key).setValue(true);
-        FirebaseDatabase.getInstance().getReference().child("users").child(contacts.get(position).getUid()).child("chat").child(key).setValue(true);
+        Query receiverChatQuery = FirebaseDatabase.getInstance().getReference().child("users").child(contacts.get(position).getUid()).child("chat");
+        receiverChatQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    int i = 0;
+                    for (DataSnapshot chatKey : dataSnapshot.getChildren()) {
+                        ++i;
+                        if (chatKeys.contains(chatKey.getKey())) {
+                            //if true then there was a previous communication history between chats
+                            String chatId = chatKey.getKey();
+                            startWithChatId(chatId);
+                            return;
+                        }
+                        if (i == dataSnapshot.getChildrenCount()) {
+                            //if true then there was no communication history between chats
+                            startChat(position);
+                        }
+                    }
+                } else {
+                    startChat(position);
+                }
+            }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+            }
+        });
     }
 
     private void setContactToList(Contact contact) {
@@ -116,5 +162,22 @@ public class FindUserActivity extends AppCompatActivity {
             return CountryToPhonePrefix.getPhone(iso);
         }
         return "";
+    }
+
+    private void startChat(int position) {
+        String chatId = FirebaseDatabase.getInstance().getReference().child("chat").push().getKey();
+
+        FirebaseDatabase.getInstance().getReference().child("users").child(FirebaseAuth.getInstance().getUid()).child("chat").child(chatId).setValue(true);
+        FirebaseDatabase.getInstance().getReference().child("users").child(contacts.get(position).getUid()).child("chat").child(chatId).setValue(true);
+        FirebaseDatabase.getInstance().getReference().child("users").child(contacts.get(position).getUid()).child("chat").child(chatId).setValue(true);
+
+        startWithChatId(chatId);
+    }
+
+    private void startWithChatId(String chatId) {
+        Intent intent = new Intent(this, MessageActivity.class);
+        intent.putExtra("chatId", chatId);
+        startActivity(intent);
+        finish();
     }
 }

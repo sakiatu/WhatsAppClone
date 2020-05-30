@@ -7,6 +7,11 @@ public class Chat {
     private String chatIconUrl;
     private String chatId;
 
+    public Chat(String chatName, String chatId) {
+        this.chatName = chatName;
+        this.chatId = chatId;
+    }
+
 
     public String getChatId() {
         return chatId;
