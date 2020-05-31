@@ -12,7 +12,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".chatMessage.ImageViewerActivity"></activity>
+        <activity android:name=".profile.ProfileActivity"></activity>
+        <activity android:name=".chatMessage.ImageViewerActivity" />
         <activity
             android:name=".chatMessage.MessageActivity"
             android:windowSoftInputMode="adjustResize" />

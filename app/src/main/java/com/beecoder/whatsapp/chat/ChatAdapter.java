@@ -1,5 +1,6 @@
 package com.beecoder.whatsapp.chat;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,13 +11,16 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.beecoder.whatsapp.R;
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 
 public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder> {
+    private Context context;
     private ArrayList<Chat> chats;
 
-    public ChatAdapter(ArrayList<Chat> chats) {
+    public ChatAdapter(Context context, ArrayList<Chat> chats) {
+        this.context = context;
         this.chats = chats;
     }
 
@@ -55,6 +59,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
     public void onBindViewHolder(@NonNull ChatViewHolder holder, int position) {
         holder.name.setText(chats.get(position).getChatName());
         holder.lastMsg.setText(chats.get(position).getLastChatMsg());
+        Glide.with(context).load(chats.get(position).getChatIconUrl()).circleCrop().placeholder(R.drawable.icon_people).into(holder.chatIcon);
     }
 
     @Override

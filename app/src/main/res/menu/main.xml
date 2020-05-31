@@ -5,5 +5,9 @@
         android:id="@+id/log_out"
         android:title="Log Out"
         app:showAsAction="never"/>
+ <item
+        android:id="@+id/profile"
+        android:title="My Profile"
+        app:showAsAction="never"/>
 
 </menu>

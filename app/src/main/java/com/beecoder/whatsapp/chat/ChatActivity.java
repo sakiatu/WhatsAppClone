@@ -11,14 +11,12 @@ import android.Manifest;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 
 import com.beecoder.whatsapp.R;
-import com.beecoder.whatsapp.chat.Chat;
-import com.beecoder.whatsapp.chat.ChatAdapter;
 import com.beecoder.whatsapp.chatMessage.MessageActivity;
 import com.beecoder.whatsapp.login.LoginActivity;
+import com.beecoder.whatsapp.profile.ProfileActivity;
 import com.beecoder.whatsapp.user.FindUserActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -26,20 +24,23 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.EventListener;
 
 public class ChatActivity extends AppCompatActivity {
     private ChatAdapter adapter;
     private ArrayList<Chat> chats = new ArrayList<>();
+    private DatabaseReference users;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        users = FirebaseDatabase.getInstance().getReference().child("users");
+        userId = FirebaseAuth.getInstance().getUid();
 
         setupToolbar();
         getPermissions();
@@ -49,8 +50,6 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void getUserChatsFromDatabase() {
-        String userId = FirebaseAuth.getInstance().getUid();
-        DatabaseReference users = FirebaseDatabase.getInstance().getReference().child("users");
         DatabaseReference userChats = users.child(userId).child("chat");
 
         userChats.addValueEventListener(new ValueEventListener() {
@@ -72,9 +71,10 @@ public class ChatActivity extends AppCompatActivity {
                                             hasChatId = false; //if there is chat missing then it will produce null
 
                                         if (!isSenderUid && hasChatId) {
-                                            String chatName = uID.child("number").getValue().toString();
-                                            if (!(chats.contains(new Chat(chatName, chatId)))) {
-                                                Chat chat = new Chat(chatName, chatId);
+                                            String chatName = uID.child("name").getValue(String.class);
+                                            String chatIcon = uID.child("profilePicture").getValue(String.class);
+                                            if (!(chats.contains(new Chat(chatIcon,chatName, chatId)))) {
+                                                Chat chat = new Chat(chatIcon,chatName, chatId);
                                                 chats.add(chat);
                                                 adapter.notifyDataSetChanged();
                                                 setLastMessage(chatId, chat);
@@ -105,9 +105,8 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if (dataSnapshot.exists()) {
-                    Log.i("helloWorld", "onDataChange: " + dataSnapshot.toString());
                     if (dataSnapshot.child("text").getValue() != null) {
-                        chat.setLastChatMsg(dataSnapshot.child("text").getValue().toString());
+                        chat.setLastChatMsg(dataSnapshot.child("text").getValue(String.class));
                         adapter.notifyDataSetChanged();
                     }
                 }
@@ -143,7 +142,7 @@ public class ChatActivity extends AppCompatActivity {
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(layoutManager);
-        adapter = new ChatAdapter(chats);
+        adapter = new ChatAdapter(this,chats);
         recyclerView.setAdapter(adapter);
         adapter.setOnItemClickListener(this::startChatting);
     }
@@ -151,6 +150,7 @@ public class ChatActivity extends AppCompatActivity {
     private void startChatting(int position) {
         Intent intent = new Intent(this, MessageActivity.class);
         intent.putExtra("chatId", chats.get(position).getChatId());
+        intent.putExtra("chatName",chats.get(position).getChatName());
         startActivity(intent);
     }
 
@@ -174,10 +174,19 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private boolean onMenuItemClick(MenuItem menuItem) {
-        if (menuItem.getItemId() == R.id.log_out) {
-            logOut();
+        switch (menuItem.getItemId()) {
+            case R.id.log_out:
+                logOut();
+                break;
+            case R.id.profile:
+                openProfile();
+                break;
         }
         return true;
+    }
+
+    private void openProfile() {
+        startActivity(new Intent(this, ProfileActivity.class));
     }
 
     private void getPermissions() {
